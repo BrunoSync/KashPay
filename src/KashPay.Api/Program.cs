@@ -1,3 +1,4 @@
+using KashPay.Application.Extension;
 using KashPay.Infrastructure.Extension;
 using Scalar.AspNetCore;
 
@@ -9,7 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Controllers
 builder.Services.AddControllers();
 
+// Infra
 builder.Services.AddInfrastructure(builder.Configuration);
+
+// Application
+builder.Services.AddApplication();
 
 builder.Services.AddOpenApi();
 

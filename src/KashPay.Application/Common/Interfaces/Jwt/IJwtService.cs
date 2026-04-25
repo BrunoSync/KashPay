@@ -9,6 +9,6 @@ namespace KashPay.Application.Common.Interfaces.Jwt
     public interface IJwtService
     {
         string GenerateAccessToken(User user);
-        string GenerateRefreshToken();
+        (string, int) GenerateRefreshToken();
     }
 }

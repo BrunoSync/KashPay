@@ -3,8 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using KashPay.Application.Common.Interfaces.Infrastructure;
+using KashPay.Application.Common.Interfaces.Infrastructure.Repositories;
 using KashPay.Application.Common.Interfaces.Jwt;
+using KashPay.Application.Common.Interfaces.Repositories;
+using KashPay.Infrastructure.Common.Repositories;
 using KashPay.Infrastructure.Common.Services;
+using KashPay.Infrastructure.Common.Utils;
 using KashPay.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
@@ -50,6 +55,15 @@ namespace KashPay.Infrastructure.Extension
             services.AddDbContext<AppDbContext>(Options =>
                 Options.UseNpgsql(connectionString)
             );
+
+            // DI
+            services.AddScoped<ICpfHasher, CpfHasher>();
+            services.AddScoped<IPasswordHasher, PasswordHasher>();
+
+            // Repositories
+            services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
 
             // Return
             return services;
