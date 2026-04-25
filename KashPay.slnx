@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/KashPay.Api/KashPay.Api.csproj" />
+    <Project Path="src/KashPay.Application/KashPay.Application.csproj" />
+    <Project Path="src/KashPay.Domain/KashPay.Domain.csproj" />
+    <Project Path="src/KashPay.Infrastructure/KashPay.Infrastructure.csproj" />
+  </Folder>
+</Solution>
