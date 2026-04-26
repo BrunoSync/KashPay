@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using KashPay.Application.Features.Auth.Login.Queries;
 using KashPay.Application.Features.Auth.Login.Register.Commands;
+using KashPay.Application.Features.Auth.Logout.Commands;
+using KashPay.Application.Features.Auth.Refresh.Commands;
 using KashPay.Domain.Enums;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace KashPay.Api.Controllers
@@ -46,6 +50,33 @@ namespace KashPay.Api.Controllers
                 error => error.type switch
                 {
                     ErrorsType.ConflictError => Conflict(error),
+                    _ => StatusCode(500, error)
+                }
+            );
+        }
+
+        [HttpPost("logout")]
+        [Authorize]
+        public async Task<IActionResult> Logout(CancellationToken ct)
+        {
+            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty);
+            var command = new LogoutCommand(userId);
+            await _mediator.Send(command, ct);
+            return NoContent();
+        }
+
+        [HttpPost("refresh")]
+        [Authorize]
+        public async Task<IActionResult> Refresh(RefreshCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
+
+            return result.Match(
+                success => Ok(success),
+                error => error.type switch
+                {
+                    ErrorsType.NotFoundError => NotFound(error),
+                    ErrorsType.UnauthorizedError => Unauthorized(error),
                     _ => StatusCode(500, error)
                 }
             );

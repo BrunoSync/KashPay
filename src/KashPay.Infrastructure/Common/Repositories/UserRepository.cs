@@ -31,6 +31,12 @@ namespace KashPay.Infrastructure.Common.Repositories
                     .Where(u => u.Email == credential || u.HashCpf == credential)
                     .FirstOrDefaultAsync(ct);
 
+        public async Task<User?> GetUserByIdAsync(Guid userId, CancellationToken ct)
+        => await _context.users
+                    .AsNoTracking()
+                    .Where(u => u.Id == userId)
+                    .FirstOrDefaultAsync(ct);
+
         public async Task<bool> UserExistByEmailAsync(string email, CancellationToken ct)
         => await _context.users
                     .AsNoTracking()

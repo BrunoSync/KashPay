@@ -10,5 +10,7 @@ namespace KashPay.Application.Common.Interfaces.Infrastructure.Repositories
     {
         // === Commands ===
         Task Add(RefreshToken token);
+        Task<List<RefreshToken>> GetAllValidTokensByUserAsync(Guid userId, CancellationToken ct);
+        Task<RefreshToken?> GetRefreshTokenByTokenAsync(string refreshToken, CancellationToken ct);
     }
 }
