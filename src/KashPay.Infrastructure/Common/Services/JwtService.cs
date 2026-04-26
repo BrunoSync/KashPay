@@ -53,11 +53,12 @@ namespace KashPay.Infrastructure.Common.Services
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
 
-        public string GenerateRefreshToken()
+        public (string, int) GenerateRefreshToken()
         {
             // Generate 64 random bytes and convert to Base64
             var bytes = RandomNumberGenerator.GetBytes(64);
-            return Convert.ToBase64String(bytes);
+            var expiration = int.Parse(_config["JWT:REFRESHTOKENEXPIRATIONDAYS"]!);
+            return (Convert.ToBase64String(bytes), expiration);
         }
     }
 }
