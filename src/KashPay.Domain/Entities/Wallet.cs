@@ -8,11 +8,11 @@ namespace KashPay.Domain.Entities
     public class Wallet
     {
         // Constructor
-        public Wallet(Guid userId, decimal balance)
+        public Wallet(Guid userId)
         {
             Id = Guid.NewGuid();
             UserId = userId;
-            Balance = balance;
+            Balance = 0;
             CreatedAt = DateTime.UtcNow;
         }
 

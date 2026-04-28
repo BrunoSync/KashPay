@@ -5,4 +5,7 @@
     <Project Path="src/KashPay.Domain/KashPay.Domain.csproj" />
     <Project Path="src/KashPay.Infrastructure/KashPay.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/KashPay.Tests/KashPay.Tests.csproj" />
+  </Folder>
 </Solution>
