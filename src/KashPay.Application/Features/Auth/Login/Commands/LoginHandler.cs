@@ -24,10 +24,9 @@ namespace KashPay.Application.Features.Auth.Login.Queries
         private readonly IJwtService _token;
         private readonly IUserRepository _userRepo;
         private readonly IRefreshTokenRepository _rtRepo;
-        private readonly IValidator<LoginCommand> _validator;
 
         public LoginHandler(ICpfHasher cpfHasher, IUnitOfWork uow, IPasswordHasher passHasher, IJwtService token, 
-            IUserRepository userRepo, IRefreshTokenRepository rtRepo, IValidator<LoginCommand> validator
+            IUserRepository userRepo, IRefreshTokenRepository rtRepo
             )
         {
             _cpfHasher = cpfHasher;
@@ -36,13 +35,10 @@ namespace KashPay.Application.Features.Auth.Login.Queries
             _token = token;
             _userRepo = userRepo;
             _rtRepo = rtRepo;
-            _validator = validator;
         }
 
          public async Task<OneOf<LoginResponse, AppError>> Handle(LoginCommand command, CancellationToken ct)
-         {
-            // Fluent Validation
-            
+         {  
             var normalizedCredential = string.Empty;
 
             if (!command.Credentials.Contains("@"))
