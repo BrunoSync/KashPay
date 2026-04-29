@@ -16,13 +16,15 @@ namespace KashPay.Application.Features.Auth.Login.Register.Commands
     public class RegisterHandler : IRequestHandler<RegisterCommand, OneOf<RegisterResponse, AppError>>
     {
         private readonly IUserRepository _userRepo;
+        private readonly IWalletRepository _walletRepo;
         private readonly IUnitOfWork _uow;
         private readonly ICpfHasher _cpfHasher;
         private readonly IPasswordHasher _passwordHasher;
 
-        public RegisterHandler(IUserRepository userRepo, IUnitOfWork uow, ICpfHasher cpfHasher, IPasswordHasher passwordHasher)
+        public RegisterHandler(IUserRepository userRepo, IWalletRepository walletRepo, IUnitOfWork uow, ICpfHasher cpfHasher, IPasswordHasher passwordHasher)
         {
             _userRepo = userRepo;
+            _walletRepo = walletRepo;
             _uow = uow;
             _cpfHasher = cpfHasher;
             _passwordHasher = passwordHasher;
@@ -51,7 +53,12 @@ namespace KashPay.Application.Features.Auth.Login.Register.Commands
                 hashedPassword
             );
 
+            var newWallet = new Domain.Entities.Wallet(
+                newUser.Id
+            );
+
             await _userRepo.Add(newUser);
+            await _walletRepo.Add(newWallet);
             await _uow.CommitAsync(ct);
 
             return new RegisterResponse(

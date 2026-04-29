@@ -12,6 +12,7 @@ namespace KashPay.Domain.Entities
         {
             Id = Guid.NewGuid();
             UserId = userId;
+            AccountNumber = GenerateAccountNumber();
             Balance = 0;
             CreatedAt = DateTime.UtcNow;
         }
@@ -26,10 +27,19 @@ namespace KashPay.Domain.Entities
         public Guid Id { get; init; }
         public Guid UserId { get; init; }
         public User User { get; init; } = null!;
+        public string AccountNumber { get; init; } = string.Empty;
         public decimal Balance { get; private set; }
         public DateTime CreatedAt { get; init; }
 
         // Methods
+        public string GenerateAccountNumber()
+        {
+            var number = Random.Shared.Next(10000, 9999999);
+            var digit = Random.Shared.Next(00, 99);
+
+            return $"{number}-{digit}";
+        }
+
         public void Credit(decimal amount)
         => Balance += amount;
 
