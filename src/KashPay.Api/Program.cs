@@ -1,3 +1,4 @@
+using KashPay.Api.Global;
 using KashPay.Application.Extension;
 using KashPay.Infrastructure.Extension;
 using Scalar.AspNetCore;
@@ -6,6 +7,10 @@ using Scalar.AspNetCore;
 DotNetEnv.Env.Load("../../.env");
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Global Exception
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
+builder.Services.AddProblemDetails();
 
 // Controllers
 builder.Services.AddControllers();
@@ -26,6 +31,7 @@ if (app.Environment.IsDevelopment())
     app.MapScalarApiReference();
 }
 
+app.UseExceptionHandler();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

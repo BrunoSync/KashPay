@@ -18,6 +18,7 @@ namespace KashPay.Tests.Application.Features.Auth.Register.Commands
     public class RegisterHandlerTests
     {
         private readonly IUserRepository _userRepo;
+        private readonly IWalletRepository _walletRepo;
         private readonly IUnitOfWork _uow;
         private readonly ICpfHasher _cpfHasher;
         private readonly IPasswordHasher _passwordHasher;
@@ -27,11 +28,12 @@ namespace KashPay.Tests.Application.Features.Auth.Register.Commands
         public RegisterHandlerTests()
         {
             _userRepo = Substitute.For<IUserRepository>();
+            _walletRepo = Substitute.For<IWalletRepository>();
             _uow = Substitute.For<IUnitOfWork>();
             _cpfHasher = Substitute.For<ICpfHasher>();
             _passwordHasher = Substitute.For<IPasswordHasher>();
 
-            _handler = new RegisterHandler(_userRepo, _uow, _cpfHasher, _passwordHasher);
+            _handler = new RegisterHandler(_userRepo, _walletRepo, _uow, _cpfHasher, _passwordHasher);
         }
 
         [Fact]
