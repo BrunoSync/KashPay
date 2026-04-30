@@ -35,7 +35,7 @@ namespace KashPay.Domain.Entities
         public string GenerateAccountNumber()
         {
             var number = Random.Shared.Next(10000, 9999999);
-            var digit = Random.Shared.Next(00, 99);
+            var digit = Random.Shared.Next(10, 99);
 
             return $"{number}-{digit}";
         }

@@ -15,13 +15,11 @@ namespace KashPay.Application.Features.Transaction.Queries.GetTransactions
     {
         private readonly IWalletRepository _walletRepo;
         private readonly ITransactionRepository _transactionRepo;
-        private readonly IUnitOfWork _uow;
 
-        public GetTransactionsHandler(IWalletRepository walletRepo, ITransactionRepository transactionRepo, IUnitOfWork uow)
+        public GetTransactionsHandler(IWalletRepository walletRepo, ITransactionRepository transactionRepo)
         {
             _walletRepo = walletRepo;
             _transactionRepo = transactionRepo;
-            _uow = uow;
         }
 
         public async Task<OneOf<GetTransactionsResponse, AppError>> Handle(GetTransactionsQuery query, CancellationToken ct)

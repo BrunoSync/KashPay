@@ -11,7 +11,7 @@ namespace KashPay.Application.Features.Wallet.Commands.Deposit
         public DepositCommandValidator()
         {
             RuleFor(a => a.Amount)
-                .ExclusiveBetween(10, 50000).WithMessage("Amount should be between 10 and 50.000");
+                .ExclusiveBetween(9, 50001).WithMessage("Amount should be between 10 and 50.000");
         }
     }
 }
