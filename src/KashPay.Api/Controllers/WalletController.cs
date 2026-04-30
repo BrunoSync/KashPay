@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using KashPay.Application.DTOs;
+using KashPay.Application.Features.Transaction.Queries.GetTransactions;
 using KashPay.Application.Features.Wallet.Commands.Deposit;
 using KashPay.Application.Features.Wallet.Commands.Transfer;
 using KashPay.Application.Features.Wallet.Commands.Withdraw;
@@ -106,6 +107,28 @@ namespace KashPay.Api.Controllers
                 {
                     ErrorsType.NotFoundError => NotFound(error),
                     ErrorsType.BusinessError => BadRequest(error),
+                    _ => StatusCode(500, error)
+                }
+            );
+        }
+
+        [HttpGet("transactions")]
+        [Authorize]
+        public async Task<IActionResult> GetTransactions(
+            [FromQuery] int pageSize,
+            [FromQuery] DateTime? cursor,
+            CancellationToken ct)
+        {
+            var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty);
+            var query = new GetTransactionsQuery(userId, pageSize, cursor);
+
+            var result = await _mediator.Send(query, ct);
+
+            return result.Match(
+                success => Ok(success),
+                error => error.type switch
+                {
+                    ErrorsType.NotFoundError => NotFound(error),
                     _ => StatusCode(500, error)
                 }
             );

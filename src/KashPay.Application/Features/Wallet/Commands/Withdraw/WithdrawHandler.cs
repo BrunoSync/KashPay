@@ -38,7 +38,7 @@ namespace KashPay.Application.Features.Wallet.Commands.Withdraw
 
             wallet.Debit(command.Amount);
 
-            var newTransaction = new Transaction(
+            var newTransaction = new Domain.Entities.Transaction(
                 wallet.Id,
                 null,
                 command.Amount,

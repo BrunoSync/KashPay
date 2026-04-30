@@ -45,7 +45,7 @@ namespace KashPay.Application.Features.Wallet.Commands.Transfer
             userWallet.Debit(command.Amount);
             toWallet.Credit(command.Amount);
 
-            var newTransaction = new Transaction(
+            var newTransaction = new Domain.Entities.Transaction(
                 userWallet.Id,
                 toWallet.Id,
                 command.Amount,

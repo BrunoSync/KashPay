@@ -34,7 +34,7 @@ namespace KashPay.Application.Features.Wallet.Commands.Deposit
 
             wallet.Credit(command.Amount);
 
-            var newTransaction = new Transaction(
+            var newTransaction = new Domain.Entities.Transaction(
                 null,
                 wallet.Id,
                 command.Amount,
