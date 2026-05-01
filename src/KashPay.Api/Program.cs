@@ -1,6 +1,9 @@
+using KashPay.Api.Configuration;
 using KashPay.Api.Global;
 using KashPay.Application.Extension;
+using KashPay.Infrastructure.Data;
 using KashPay.Infrastructure.Extension;
+using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 
 // DotNetEnv
@@ -21,7 +24,10 @@ builder.Services.AddInfrastructure(builder.Configuration);
 // Application
 builder.Services.AddApplication();
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(opts =>
+{
+    opts.AddDocumentTransformer<BearerSecuritySchemeTransformer>();
+});
 
 var app = builder.Build();
 
@@ -36,5 +42,11 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await db.Database.MigrateAsync();
+}
 
 app.Run();
