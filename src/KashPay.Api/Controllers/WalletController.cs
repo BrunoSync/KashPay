@@ -14,6 +14,7 @@ using KashPay.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Scalar.AspNetCore;
 
 namespace KashPay.Api.Controllers
@@ -50,6 +51,7 @@ namespace KashPay.Api.Controllers
         }
 
         [HttpPost("deposit")]
+        [EnableRateLimiting("transaction")]
         [Authorize]
         public async Task<IActionResult> Deposit(WalletAmountRequestDto request, CancellationToken ct)
         {
@@ -69,6 +71,7 @@ namespace KashPay.Api.Controllers
         }
         
         [HttpPost("withdraw")]
+        [EnableRateLimiting("transaction")]
         [Authorize]
         public async Task<IActionResult> Withdraw(WalletAmountRequestDto request, CancellationToken ct)
         {
@@ -89,6 +92,7 @@ namespace KashPay.Api.Controllers
         }
 
         [HttpPost("transfer")]
+        [EnableRateLimiting("transaction")]
         [Authorize]
         public async Task<IActionResult> Transfer(TransferRequestDto request, CancellationToken ct)
         {
