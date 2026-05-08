@@ -22,7 +22,7 @@ KashPay is a backend API that simulates a digital wallet system. Users can regis
 - → CPF and email login support with HMAC-SHA256 CPF hashing
 - → Deposit, withdrawal and P2P transfers with business rules
 - → Cursor-based pagination for transaction history
-- → Atomic transactions preventing race conditions
+- → Pessimistic locking with SELECT FOR UPDATE preventing race conditions in concurrent transfers
 - → Global exception handler with standardized error responses
 - → 88 unit tests covering entities, handlers and validators
 
