@@ -11,6 +11,7 @@ using KashPay.Domain.Enums;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace KashPay.Api.Controllers
 {
@@ -26,6 +27,7 @@ namespace KashPay.Api.Controllers
         }
 
         [HttpPost("login")]
+        [EnableRateLimiting("login")]
         public async Task<IActionResult> Login(LoginCommand command, CancellationToken ct)
         {
             var result = await _mediator.Send(command, ct);
@@ -41,6 +43,7 @@ namespace KashPay.Api.Controllers
         }
 
         [HttpPost("register")]
+        [EnableRateLimiting("register")]
         public async Task<IActionResult> Register(RegisterCommand command, CancellationToken ct)
         {
             var result = await _mediator.Send(command, ct);
