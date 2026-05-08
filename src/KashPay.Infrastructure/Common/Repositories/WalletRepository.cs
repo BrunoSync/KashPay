@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using KashPay.Application.Common.Interfaces.Infrastructure.Repositories;
@@ -23,17 +24,26 @@ namespace KashPay.Infrastructure.Common.Repositories
         public async Task Add(Wallet wallet)
         => _context.wallets.Add(wallet);
 
-        public async Task<Wallet?> FindWalletByUserIdAsync(Guid userId, CancellationToken ct)
+        public async Task<Wallet?> FindWalletLockByIdAsync(Guid walletId, CancellationToken ct)
         => await _context.wallets
-                    .Where(w => w.UserId == userId)
-                    .FirstOrDefaultAsync(ct);
-        
-        public async Task<Wallet?> FindWalletByAccountNumberAsync(string accountNumber, CancellationToken ct)
-        => await _context.wallets
-                    .Where(w => w.AccountNumber == accountNumber)
+                    .FromSqlRaw("SELECT * FROM wallets WHERE id = {0} FOR UPDATE", walletId)
                     .FirstOrDefaultAsync(ct);
 
         // === Queries ===
+        public async Task<Guid?> FindWalletIdByUserIdAsync(Guid userId, CancellationToken ct)
+        => await _context.wallets
+                    .AsNoTracking()
+                    .Where(w => w.UserId == userId)
+                    .Select(w => w.Id)
+                    .FirstOrDefaultAsync(ct);
+        
+        public async Task<Guid?> FindWalletIdByAccountNumberAsync(string accountNumber, CancellationToken ct)
+        => await _context.wallets
+                    .AsNoTracking()
+                    .Where(w => w.AccountNumber == accountNumber)
+                    .Select(w => w.Id)
+                    .FirstOrDefaultAsync(ct);
+
         public async Task<Wallet?> GetWalletByUserIdAsync(Guid userId, CancellationToken ct)
         => await _context.wallets
                     .AsNoTracking()

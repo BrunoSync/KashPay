@@ -8,5 +8,6 @@ namespace KashPay.Application.Common.Interfaces.Infrastructure.Repositories
     public interface IUnitOfWork
     {
         Task CommitAsync(CancellationToken ct);
+        Task BeginTransactionAsync(CancellationToken ct);
     }
 }

@@ -10,10 +10,11 @@ namespace KashPay.Application.Common.Interfaces.Infrastructure.Repositories
     {
         // === Commands ===
         Task Add(Wallet wallet);
-        Task<Wallet?> FindWalletByUserIdAsync(Guid userId, CancellationToken ct);
-        Task<Wallet?> FindWalletByAccountNumberAsync(string accountNumber, CancellationToken ct);
+        Task<Wallet?> FindWalletLockByIdAsync(Guid walletId, CancellationToken ct);
 
         // === Queries ===
+        Task<Guid?> FindWalletIdByUserIdAsync(Guid userId, CancellationToken ct);
+        Task<Guid?> FindWalletIdByAccountNumberAsync(string accountNumber, CancellationToken ct);
         Task<Wallet?> GetWalletByUserIdAsync(Guid userId, CancellationToken ct);
     }
 }
