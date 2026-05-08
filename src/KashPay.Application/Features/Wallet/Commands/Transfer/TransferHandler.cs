@@ -27,27 +27,56 @@ namespace KashPay.Application.Features.Wallet.Commands.Transfer
 
         public async Task<OneOf<TransferResponse, AppError>> Handle(TransferCommand command, CancellationToken ct)
         {
-            var userWallet = await _walletRepo.FindWalletByUserIdAsync(command.UserId, ct);
-            var toWallet = await _walletRepo.FindWalletByAccountNumberAsync(command.AccountNumber, ct);
+            // Transaction
+            await _uow.BeginTransactionAsync(ct);
 
-            if (userWallet is null)
+            var userWalletId = await _walletRepo.FindWalletIdByUserIdAsync(command.UserId, ct);
+            var toWalletId = await _walletRepo.FindWalletIdByAccountNumberAsync(command.AccountNumber, ct);
+            
+            if (userWalletId is null)
                 return new WalletNotFoundError();
 
-            if (toWallet is null)
+            if (toWalletId is null)
                 return new AccountNotFoundError();
+
+            var walletsIds = new[] {userWalletId!.Value, toWalletId!.Value}
+                .OrderBy(id => id)
+                .ToArray();
+
+            var firstWallet = await _walletRepo.FindWalletLockByIdAsync(walletsIds[0], ct); 
+            var secondWallet = await _walletRepo.FindWalletLockByIdAsync(walletsIds[1], ct);
+            KashPay.Domain.Entities.Wallet fromWalletAccount;
+            KashPay.Domain.Entities.Wallet toWalletAccount;
+
+            if (firstWallet is null)
+                return new WalletNotFoundError();
+
+            if (secondWallet is null)
+                return new AccountNotFoundError();
+
+            if (firstWallet.UserId == command.UserId)
+            {
+                fromWalletAccount = firstWallet;
+                toWalletAccount = secondWallet;
+            }
+            else
+            {
+                fromWalletAccount = secondWallet;
+                toWalletAccount = firstWallet;
+            }
             
-            if (toWallet.UserId == userWallet.UserId)
+            if (fromWalletAccount.UserId == toWalletAccount.UserId)
                 return new InvalidTransferError();
 
-            if (userWallet.Balance < command.Amount)
+            if (fromWalletAccount.Balance < command.Amount)
                 return new InsufficientFundsError();
 
-            userWallet.Debit(command.Amount);
-            toWallet.Credit(command.Amount);
+            fromWalletAccount.Debit(command.Amount);
+            toWalletAccount.Credit(command.Amount);
 
             var newTransaction = new Domain.Entities.Transaction(
-                userWallet.Id,
-                toWallet.Id,
+                fromWalletAccount.Id,
+                toWalletAccount.Id,
                 command.Amount,
                 TransactionType.TransferP2P
             );
@@ -56,8 +85,8 @@ namespace KashPay.Application.Features.Wallet.Commands.Transfer
             await _uow.CommitAsync(ct);
 
             return new TransferResponse(
-                userWallet.AccountNumber,
-                toWallet.AccountNumber,
+                fromWalletAccount.AccountNumber,
+                toWalletAccount.AccountNumber,
                 newTransaction.Amount,
                 DateTime.UtcNow
             );
