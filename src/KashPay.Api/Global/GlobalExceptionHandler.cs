@@ -9,11 +9,20 @@ namespace KashPay.Api.Global
 {
     public class GlobalExceptionHandler : IExceptionHandler
     {
+        private readonly ILogger<GlobalExceptionHandler> _logger;
+
+        public GlobalExceptionHandler(ILogger<GlobalExceptionHandler> logger)
+        {
+            _logger = logger;
+        }
+
         public async ValueTask<bool> TryHandleAsync(
             HttpContext context,
             Exception exception,
             CancellationToken ct)
         {
+            _logger.LogError(exception, "Unhandled exception: {Message}", exception.Message);
+
             var (statusCode, message) = exception switch
             {
                 ValidationException ex => (
@@ -25,6 +34,7 @@ namespace KashPay.Api.Global
                     new[] { "An unexpected error occurred" } as IEnumerable<string>
                 )
             };
+
             context.Response.StatusCode = statusCode;
 
             await context.Response.WriteAsJsonAsync(new
