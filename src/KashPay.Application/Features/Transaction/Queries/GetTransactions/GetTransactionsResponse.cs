@@ -10,6 +10,6 @@ namespace KashPay.Application.Features.Transaction.Queries.GetTransactions
     public record GetTransactionsResponse
     (
         List<TransactionDto> Transactions,
-        DateTime? Cursor
+        (DateTime?, Guid) Cursor
     );
 }

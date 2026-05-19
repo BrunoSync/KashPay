@@ -120,10 +120,12 @@ namespace KashPay.Api.Controllers
         [Authorize]
         public async Task<IActionResult> GetTransactions(
             [FromQuery] int pageSize,
-            [FromQuery] DateTime? cursor,
+            [FromQuery] DateTime? cursorTimestamp,
+            [FromQuery] Guid? cursorId,
             CancellationToken ct)
         {
             var userId = Guid.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? string.Empty);
+            var cursor = (cursorTimestamp, cursorId ?? Guid.Empty);
             var query = new GetTransactionsQuery(userId, pageSize, cursor);
 
             var result = await _mediator.Send(query, ct);
