@@ -29,15 +29,26 @@ namespace KashPay.Infrastructure.Common.Repositories
                     .FromSqlRaw("SELECT * FROM wallets WHERE id = {0} FOR UPDATE", walletId)
                     .FirstOrDefaultAsync(ct);
 
+        
+        public async Task<Wallet?> FindWalletByUserIdAsync(Guid userId, CancellationToken ct)
+        => await _context.wallets
+            .Where(w => w.UserId == userId)
+            .FirstOrDefaultAsync(ct);
+
+        public async Task<Wallet?> FindWalletByAccountNumberAsync(string accountNumber, CancellationToken ct)
+        => await _context.wallets
+                    .Where(w => w.AccountNumber == accountNumber)
+                    .FirstOrDefaultAsync(ct);
+
         // === Queries ===
-        public async Task<Guid?> FindWalletIdByUserIdAsync(Guid userId, CancellationToken ct)
+        public async Task<Guid?> GetWalletIdByUserIdAsync(Guid userId, CancellationToken ct)
         => await _context.wallets
                     .AsNoTracking()
                     .Where(w => w.UserId == userId)
                     .Select(w => w.Id)
                     .FirstOrDefaultAsync(ct);
-        
-        public async Task<Guid?> FindWalletIdByAccountNumberAsync(string accountNumber, CancellationToken ct)
+
+        public async Task<Guid?> GetWalletIdByAccountNumberAsync(string accountNumber, CancellationToken ct)
         => await _context.wallets
                     .AsNoTracking()
                     .Where(w => w.AccountNumber == accountNumber)

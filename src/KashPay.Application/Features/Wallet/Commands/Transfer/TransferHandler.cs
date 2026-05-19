@@ -30,8 +30,8 @@ namespace KashPay.Application.Features.Wallet.Commands.Transfer
             // Transaction
             await _uow.BeginTransactionAsync(ct);
 
-            var userWalletId = await _walletRepo.FindWalletIdByUserIdAsync(command.UserId, ct);
-            var toWalletId = await _walletRepo.FindWalletIdByAccountNumberAsync(command.AccountNumber, ct);
+            var userWalletId = await _walletRepo.GetWalletIdByUserIdAsync(command.UserId, ct);
+            var toWalletId = await _walletRepo.GetWalletIdByAccountNumberAsync(command.AccountNumber, ct);
             
             if (userWalletId is null)
                 return new WalletNotFoundError();

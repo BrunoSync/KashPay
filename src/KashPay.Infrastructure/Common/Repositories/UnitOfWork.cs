@@ -26,10 +26,8 @@ namespace KashPay.Infrastructure.Common.Repositories
         public async Task CommitAsync(CancellationToken ct)
         {
             await _context.SaveChangesAsync(ct);
-            if (_transaction is null)
-                throw new InvalidOperationException("No transaction in progress.");
-
-            await _transaction.CommitAsync(ct);
+            if (_transaction is not null)
+                await _transaction.CommitAsync(ct);
         }
     }
 }
