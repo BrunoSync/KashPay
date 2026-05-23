@@ -18,6 +18,7 @@ namespace KashPay.Infrastructure.Data
         public DbSet<Wallet> wallets => Set<Wallet>();
         public DbSet<Transaction> transactions => Set<Transaction>();
         public DbSet<RefreshToken> refreshTokens => Set<RefreshToken>();
+        public DbSet<PasswordResetToken> passwordResetTokens => Set<PasswordResetToken>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

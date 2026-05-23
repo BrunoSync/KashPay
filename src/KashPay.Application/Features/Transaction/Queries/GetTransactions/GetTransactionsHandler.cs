@@ -46,7 +46,7 @@ namespace KashPay.Application.Features.Transaction.Queries.GetTransactions
 
             var nextCursor = transactions.Count == query.PageSize
                 ? (transactions.Last().CreatedAt, transactions.Last().Id)
-                : ((DateTime?, Guid))(null, Guid.Empty);
+                : ((DateTime?, Guid?)?)null;
 
             return new GetTransactionsResponse(transactionDtos, nextCursor);
         }
