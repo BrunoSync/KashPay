@@ -12,6 +12,6 @@ namespace KashPay.Application.Common.Interfaces.Infrastructure.Repositories
         Task Add(Transaction transaction);
 
         // === Queries ===
-        Task<List<Transaction>> GetByWalletIdAsync(Guid walletId, int pageSize, (DateTime? timeStamp, Guid id) cursor, CancellationToken ct);
+        Task<List<Transaction>> GetByWalletIdAsync(Guid walletId, int pageSize, (DateTime? timeStamp, Guid? id)? cursor, CancellationToken ct);
     }
 }

@@ -66,6 +66,10 @@ namespace KashPay.Infrastructure.Extension
             services.AddScoped<ITransactionRepository, TransactionRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
+            services.AddScoped<IPasswordResetTokenRepository, PasswordResetTokenRepository>();
+
+            // EmailService
+            services.AddScoped<IEmailService, EmailService>();
 
             // Return
             return services;

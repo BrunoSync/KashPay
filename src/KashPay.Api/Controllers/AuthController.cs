@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using KashPay.Application.DTOs;
+using KashPay.Application.Features.Auth.ForgetPassword.Commands;
+using KashPay.Application.Features.Auth.ForgotPassword.Commands;
 using KashPay.Application.Features.Auth.Login.Queries;
 using KashPay.Application.Features.Auth.Login.Register.Commands;
 using KashPay.Application.Features.Auth.Logout.Commands;
@@ -16,7 +19,7 @@ using Microsoft.AspNetCore.RateLimiting;
 namespace KashPay.Api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     public class AuthController : ControllerBase
     {
         private readonly IMediator _mediator;
@@ -83,6 +86,37 @@ namespace KashPay.Api.Controllers
                     _ => StatusCode(500, error)
                 }
             );
+        }
+
+        [HttpPost("resetpassword")]
+        public async Task<IActionResult> ResetPassword([FromBody] PasswordResetRequest request, CancellationToken ct)
+        {
+            var command = new ResetPasswordCommand(
+                request.Email,
+                request.Code,
+                request.NewPassword,
+                request.ConfirmNewPassword
+            );
+
+            var result = await _mediator.Send(command, ct);
+
+            return result.Match(
+                success => Ok(success),
+                error => error.type switch
+                {
+                    ErrorsType.NotFoundError => NotFound(error),
+                    ErrorsType.BusinessError => BadRequest(error),
+                    _ => StatusCode(500, error)
+                }
+            );
+        }
+
+        [HttpPost("forgetpassword")]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordCommand command, CancellationToken ct)
+        {
+            var result = await _mediator.Send(command, ct);
+
+            return Ok(result);
         }
     }
 }

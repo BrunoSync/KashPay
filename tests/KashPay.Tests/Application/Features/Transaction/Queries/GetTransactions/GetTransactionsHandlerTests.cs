@@ -90,7 +90,7 @@ namespace KashPay.Tests.Application.Features.Transaction.Queries.GetTransactions
             result.IsT0.Should().BeTrue();
             var success = result.AsT0;
             success.Cursor.Should().NotBeNull();
-            success.Cursor.Should().Be(transactions.Last().CreatedAt);
+            success.Cursor.Should().Be(((DateTime?)transactions.Last().CreatedAt, (Guid?)transactions.Last().Id));
         }
 
         [Fact]

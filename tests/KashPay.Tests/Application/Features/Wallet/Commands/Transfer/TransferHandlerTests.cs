@@ -35,13 +35,18 @@ namespace KashPay.Tests.Application.Features.Wallet.Commands.Transfer
             var fromWallet = new KashPay.Domain.Entities.Wallet(command.UserId);
             fromWallet.Credit(10000);
 
-            var toWallet = new KashPay.Domain.Entities.Wallet(Guid.NewGuid());
+            var toWalletId = Guid.NewGuid();
 
-            _walletRepo.FindWalletByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
+            _walletRepo.GetWalletIdByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
+                .Returns(fromWallet.Id);
+            _walletRepo.GetWalletIdByAccountNumberAsync(command.AccountNumber, Arg.Any<CancellationToken>()) 
+                .Returns(toWalletId);
+
+            _walletRepo.FindWalletLockByIdAsync(fromWallet.Id, Arg.Any<CancellationToken>())
                 .Returns(fromWallet);
-            _walletRepo.FindWalletByAccountNumberAsync(command.AccountNumber, Arg.Any<CancellationToken>()) 
-                .Returns(toWallet);
-            
+            _walletRepo.FindWalletLockByIdAsync(toWalletId, Arg.Any<CancellationToken>())
+                .Returns(new KashPay.Domain.Entities.Wallet(Guid.NewGuid()));
+
             var result = await _handler.Handle(command, CancellationToken.None);
 
             result.IsT0.Should().BeTrue();
@@ -73,11 +78,11 @@ namespace KashPay.Tests.Application.Features.Wallet.Commands.Transfer
         public async Task Handle_ShouldReturnAccountNotFoundError_WhenDestinationWalletDoesNotExist()
         {
             var command = new TransferCommand(Guid.NewGuid(), AccountNumberGenerator(), Random.Shared.Next(1, 1000));
-            var fromWallet = new KashPay.Domain.Entities.Wallet(command.UserId);
+            var fromWalletId = Guid.NewGuid();
 
-            _walletRepo.FindWalletByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
-                .Returns(fromWallet);
-            _walletRepo.FindWalletByAccountNumberAsync(command.AccountNumber, Arg.Any<CancellationToken>()) 
+            _walletRepo.GetWalletIdByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
+                .Returns(fromWalletId);
+            _walletRepo.GetWalletIdByAccountNumberAsync(command.AccountNumber, Arg.Any<CancellationToken>()) 
                 .ReturnsNull();
             
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -95,12 +100,15 @@ namespace KashPay.Tests.Application.Features.Wallet.Commands.Transfer
             var fromWallet = new KashPay.Domain.Entities.Wallet(command.UserId);
             fromWallet.Credit(10000);
 
-            var toWallet = new KashPay.Domain.Entities.Wallet(command.UserId);
+            _walletRepo.GetWalletIdByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
+                .Returns(fromWallet.Id);
+            _walletRepo.GetWalletIdByAccountNumberAsync(command.AccountNumber, Arg.Any<CancellationToken>()) 
+                .Returns(fromWallet.Id);
 
-            _walletRepo.FindWalletByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
+            _walletRepo.FindWalletLockByIdAsync(fromWallet.Id, Arg.Any<CancellationToken>())
                 .Returns(fromWallet);
-            _walletRepo.FindWalletByAccountNumberAsync(command.AccountNumber, Arg.Any<CancellationToken>()) 
-                .Returns(toWallet);
+            _walletRepo.FindWalletLockByIdAsync(fromWallet.Id, Arg.Any<CancellationToken>())
+                .Returns(fromWallet);
             
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -118,9 +126,14 @@ namespace KashPay.Tests.Application.Features.Wallet.Commands.Transfer
 
             var toWallet = new KashPay.Domain.Entities.Wallet(Guid.NewGuid());
 
-            _walletRepo.FindWalletByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
+            _walletRepo.GetWalletIdByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
+                .Returns(fromWallet.Id);
+            _walletRepo.GetWalletIdByAccountNumberAsync(command.AccountNumber, Arg.Any<CancellationToken>()) 
+                .Returns(toWallet.Id);
+
+            _walletRepo.FindWalletLockByIdAsync(fromWallet.Id, Arg.Any<CancellationToken>())
                 .Returns(fromWallet);
-            _walletRepo.FindWalletByAccountNumberAsync(command.AccountNumber, Arg.Any<CancellationToken>()) 
+            _walletRepo.FindWalletLockByIdAsync(toWallet.Id, Arg.Any<CancellationToken>())
                 .Returns(toWallet);
             
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -141,9 +154,14 @@ namespace KashPay.Tests.Application.Features.Wallet.Commands.Transfer
 
             var toWallet = new KashPay.Domain.Entities.Wallet(Guid.NewGuid());
 
-            _walletRepo.FindWalletByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
+            _walletRepo.GetWalletIdByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
+                .Returns(fromWallet.Id);
+            _walletRepo.GetWalletIdByAccountNumberAsync(command.AccountNumber, Arg.Any<CancellationToken>()) 
+                .Returns(toWallet.Id);
+
+            _walletRepo.FindWalletLockByIdAsync(fromWallet.Id, Arg.Any<CancellationToken>())
                 .Returns(fromWallet);
-            _walletRepo.FindWalletByAccountNumberAsync(command.AccountNumber, Arg.Any<CancellationToken>()) 
+                _walletRepo.FindWalletLockByIdAsync(toWallet.Id, Arg.Any<CancellationToken>())
                 .Returns(toWallet);
             
             var result = await _handler.Handle(command, CancellationToken.None);

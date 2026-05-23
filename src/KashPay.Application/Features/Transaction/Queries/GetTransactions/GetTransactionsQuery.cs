@@ -12,6 +12,6 @@ namespace KashPay.Application.Features.Transaction.Queries.GetTransactions
     (
         Guid UserId,
         int PageSize,
-        (DateTime?, Guid) Cursor
+        (DateTime?, Guid?)? Cursor
     ) : IRequest<OneOf<GetTransactionsResponse, AppError>>;
 }

@@ -27,16 +27,16 @@ namespace KashPay.Infrastructure.Common.Repositories
         public async Task<List<Transaction>> GetByWalletIdAsync
         (Guid walletId, 
         int pageSize, 
-       ( DateTime? timeStamp, Guid id) cursor, 
+       ( DateTime? timeStamp, Guid? id)? cursor, 
         CancellationToken ct)
         {
             var query =  _context.transactions
                             .AsNoTracking()
                             .Where(t => t.FromAccountId == walletId || t.ToAccountId == walletId);
 
-            if (cursor.timeStamp.HasValue)
-                query = query.Where(t => t.CreatedAt < cursor.timeStamp.Value
-                    || (t.CreatedAt == cursor.timeStamp.Value && t.Id < cursor.id)
+            if (cursor.HasValue)
+                query = query.Where(t => t.CreatedAt < cursor.Value.timeStamp
+                    || (t.CreatedAt == cursor.Value.timeStamp && t.Id < cursor.Value.id)
                 );
 
             return await query
