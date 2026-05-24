@@ -62,6 +62,7 @@ namespace KashPay.Api.Controllers
         }
 
         [HttpPost("logout")]
+        [EnableRateLimiting("authenticated")]
         [Authorize]
         public async Task<IActionResult> Logout(CancellationToken ct)
         {
@@ -72,6 +73,7 @@ namespace KashPay.Api.Controllers
         }
 
         [HttpPost("refresh")]
+        [EnableRateLimiting("authenticated")]
         [Authorize]
         public async Task<IActionResult> Refresh(RefreshCommand command, CancellationToken ct)
         {
@@ -89,6 +91,7 @@ namespace KashPay.Api.Controllers
         }
 
         [HttpPost("resetpassword")]
+        [EnableRateLimiting("resetpassword")]
         public async Task<IActionResult> ResetPassword([FromBody] PasswordResetRequest request, CancellationToken ct)
         {
             var command = new ResetPasswordCommand(
@@ -112,6 +115,7 @@ namespace KashPay.Api.Controllers
         }
 
         [HttpPost("forgetpassword")]
+        [EnableRateLimiting("forgotpassword")]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordCommand command, CancellationToken ct)
         {
             var result = await _mediator.Send(command, ct);
