@@ -36,6 +36,30 @@ builder.Services.AddRateLimiter(options =>
         o.QueueLimit = 0;
     });
 
+    options.AddFixedWindowLimiter("forgotpassword", o =>
+    {
+      o.PermitLimit = 5;
+      o.Window = TimeSpan.FromMinutes(30);
+      o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+      o.QueueLimit = 0;  
+    });
+
+    options.AddFixedWindowLimiter("resetpassword", o =>
+    {
+      o.PermitLimit = 5;
+      o.Window = TimeSpan.FromMinutes(15);
+      o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+      o.QueueLimit = 0;  
+    });
+
+    options.AddFixedWindowLimiter("authenticated", o =>
+    {
+      o.PermitLimit = 10;
+      o.Window = TimeSpan.FromMinutes(10);
+      o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+      o.QueueLimit = 0;  
+    });
+
     options.AddFixedWindowLimiter("transaction", o =>
     {
         o.PermitLimit = 10;
@@ -43,6 +67,8 @@ builder.Services.AddRateLimiter(options =>
         o.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
         o.QueueLimit = 0;
     });
+
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
 // Controllers
