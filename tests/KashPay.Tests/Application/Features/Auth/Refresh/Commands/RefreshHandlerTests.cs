@@ -38,27 +38,7 @@ namespace KashPay.Tests.Application.Features.Auth.Refresh.Commands
         [Trait("Features", "Refresh")]
         public async Task Handle_ShouldReturnRefreshResponse_WhenValidTokenIsProvided()
         {
-            var command = new RefreshCommand(new string('a', 32));
-
-            var expectedRt = new RefreshToken(
-                Guid.NewGuid(),
-                new string('a', 32),
-                DateTime.UtcNow.AddDays(7)
-            );
-
-            var user = new User(
-                _faker.Name.FirstName(),
-                _faker.Name.LastName(),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
-
-            _rtRepo.GetRefreshTokenByTokenAsync(command.RefreshToken, Arg.Any<CancellationToken>())
-                .Returns(expectedRt);
-
-            _userRepo.GetUserByIdAsync(expectedRt.UserId, Arg.Any<CancellationToken>())
-                .Returns(user);
+            var (command, token, user) = SetupValidRefresh();
 
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -135,16 +115,12 @@ namespace KashPay.Tests.Application.Features.Auth.Refresh.Commands
         {
             var command = new RefreshCommand(new string('a', 32));
 
-            var expectedRt = new RefreshToken(
-                Guid.NewGuid(),
-                new string('a', 32),
-                DateTime.UtcNow.AddDays(7)
-            );
+            var token = CreateValidToken();
 
             _rtRepo.GetRefreshTokenByTokenAsync(command.RefreshToken, Arg.Any<CancellationToken>())
-                .Returns(expectedRt);
+                .Returns(token);
 
-            _userRepo.GetUserByIdAsync(expectedRt.UserId, Arg.Any<CancellationToken>())
+            _userRepo.GetUserByIdAsync(token.UserId, Arg.Any<CancellationToken>())
                 .ReturnsNull();
 
             var result = await _handler.Handle(command, CancellationToken.None);
@@ -158,58 +134,18 @@ namespace KashPay.Tests.Application.Features.Auth.Refresh.Commands
         [Trait("Features", "Refresh")]
         public async Task Handle_ShouldRevokeOldToken_WhenTokenIsValid()
         {
-            var command = new RefreshCommand(new string('a', 32));
-
-            var expectedRt = new RefreshToken(
-                Guid.NewGuid(),
-                new string('a', 32),
-                DateTime.UtcNow.AddDays(7)
-            );
-
-            var user = new User(
-                _faker.Name.FirstName(),
-                _faker.Name.LastName(),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
-
-            _rtRepo.GetRefreshTokenByTokenAsync(command.RefreshToken, Arg.Any<CancellationToken>())
-                .Returns(expectedRt);
-
-            _userRepo.GetUserByIdAsync(expectedRt.UserId, Arg.Any<CancellationToken>())
-                .Returns(user);
+            var (command, token, user) = SetupValidRefresh();
 
             await _handler.Handle(command, CancellationToken.None);
 
-            expectedRt.IsRevoked.Should().BeTrue();
+            token.IsRevoked.Should().BeTrue();
         }
 
         [Fact]
         [Trait("Features", "Refresh")]
         public async Task Handle_ShouldGenerateNewTokens_WhenTokenIsValid()
         {
-            var command = new RefreshCommand(new string('a', 32));
-
-            var expectedRt = new RefreshToken(
-                Guid.NewGuid(),
-                new string('a', 32),
-                DateTime.UtcNow.AddDays(7)
-            );
-
-            var user = new User(
-                _faker.Name.FirstName(),
-                _faker.Name.LastName(),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
-
-            _rtRepo.GetRefreshTokenByTokenAsync(command.RefreshToken, Arg.Any<CancellationToken>())
-                .Returns(expectedRt);
-
-            _userRepo.GetUserByIdAsync(expectedRt.UserId, Arg.Any<CancellationToken>())
-                .Returns(user);
+            var (command, token, user) = SetupValidRefresh();
 
             await _handler.Handle(command, CancellationToken.None);
 
@@ -221,31 +157,31 @@ namespace KashPay.Tests.Application.Features.Auth.Refresh.Commands
         [Trait("Features", "Refresh")]
         public async Task Handle_ShouldCommit_WhenRefreshIsSuccessful()
         {
-            var command = new RefreshCommand(new string('a', 32));
-
-            var expectedRt = new RefreshToken(
-                Guid.NewGuid(),
-                new string('a', 32),
-                DateTime.UtcNow.AddDays(7)
-            );
-
-            var user = new User(
-                _faker.Name.FirstName(),
-                _faker.Name.LastName(),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
-
-            _rtRepo.GetRefreshTokenByTokenAsync(command.RefreshToken, Arg.Any<CancellationToken>())
-                .Returns(expectedRt);
-
-            _userRepo.GetUserByIdAsync(expectedRt.UserId, Arg.Any<CancellationToken>())
-                .Returns(user);
+            var (command, token, user) = SetupValidRefresh();
 
             await _handler.Handle(command, CancellationToken.None);
 
             await _uow.Received(1).CommitAsync(Arg.Any<CancellationToken>());
         }
+
+        private RefreshToken CreateValidToken() =>
+            new(Guid.NewGuid(), new string('a', 32), DateTime.UtcNow.AddDays(7));
+
+        private User CreateUser() =>
+            new(_faker.Name.FirstName(), _faker.Name.LastName(),
+                _faker.Internet.Email(), Guid.NewGuid().ToString(), Guid.NewGuid().ToString());
+    
+        private (RefreshCommand command, RefreshToken token, User user) SetupValidRefresh()
+        {
+            var command = new RefreshCommand(new string('a', 32));
+            var token = CreateValidToken();
+            var user = CreateUser();
+
+            _rtRepo.GetRefreshTokenByTokenAsync(command.RefreshToken, Arg.Any<CancellationToken>()).Returns(token);
+            _userRepo.GetUserByIdAsync(token.UserId, Arg.Any<CancellationToken>()).Returns(user);
+
+            return (command, token, user);
+        }
+
     }
 }

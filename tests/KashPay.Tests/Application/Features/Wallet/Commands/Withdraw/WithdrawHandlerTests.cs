@@ -32,13 +32,7 @@ namespace KashPay.Tests.Application.Features.Wallet.Commands.Withdraw
         public async Task Handle_ShouldReturnWithdrawResponse_WhenWalletExistsAndHasFunds()
         {
             var amount = Random.Shared.Next(1, 1000);
-            var command = new WithdrawCommand(Guid.NewGuid(), amount);
-            var wallet = new KashPay.Domain.Entities.Wallet(command.UserId);
-
-            wallet.Credit(10000);
-
-            _walletRepo.FindWalletByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
-                .Returns(wallet);
+            var (command, wallet) = SetupValidWithdraw();
 
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -89,17 +83,20 @@ namespace KashPay.Tests.Application.Features.Wallet.Commands.Withdraw
         [Trait("Features", "Withdraw")]
         public async Task Handle_ShouldDebitWallet_WhenWithdrawIsSuccessful()
         {
-            var command = new WithdrawCommand(Guid.NewGuid(), 1000);
-            var wallet = new KashPay.Domain.Entities.Wallet(command.UserId);
-
-            wallet.Credit(10000);
-
-            _walletRepo.FindWalletByUserIdAsync(command.UserId, Arg.Any<CancellationToken>())
-                .Returns(wallet);
+            var (command, wallet) = SetupValidWithdraw();
 
             await _handler.Handle(command, CancellationToken.None);
 
             wallet.Balance.Should().Be(9000);
+        }
+
+        private (WithdrawCommand command, KashPay.Domain.Entities.Wallet wallet) SetupValidWithdraw(decimal amount = 1000)
+        {
+            var wallet = new KashPay.Domain.Entities.Wallet(Guid.NewGuid());
+            wallet.Credit(10000);
+            var command = new WithdrawCommand(wallet.UserId, amount);
+            _walletRepo.FindWalletByUserIdAsync(command.UserId, Arg.Any<CancellationToken>()).Returns(wallet);
+            return (command, wallet);
         }
     }
 }

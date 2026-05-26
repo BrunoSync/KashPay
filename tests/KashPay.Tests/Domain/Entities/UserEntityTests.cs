@@ -17,14 +17,12 @@ namespace KashPay.Tests.Domain.Entities
         [Trait("Domain", "Entities")]
         public void Constructor_ShouldSetProperties_WhenValidDataIsProvided()
         {
-            // Property preparation
             var expectedFirstName = _faker.Name.FirstName();
             var expectedLastName = _faker.Name.LastName();
             var expectedEmail = _faker.Internet.Email();
             var expectedHashCpf = Guid.NewGuid().ToString();
             var expectedHashPassword = Guid.NewGuid().ToString();
 
-            // User creation
             var user = new User(
                 expectedFirstName,
                 expectedLastName,
@@ -33,7 +31,6 @@ namespace KashPay.Tests.Domain.Entities
                 expectedHashPassword
             );
 
-            // Expected properties
             user.Id.Should().NotBeEmpty();
             user.FirstName.Should().Be(expectedFirstName);
             user.LastName.Should().Be(expectedLastName);
@@ -49,25 +46,10 @@ namespace KashPay.Tests.Domain.Entities
         [Trait("Domain", "Entities")]
         public void Constructor_ShouldGenerateUniqueId_WhenCalledMultipleTimes()
         {
-            // Users creation
-            var user1 = new User(
-                _faker.Name.FirstName(),
-                _faker.Name.LastName(),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
+            var user1 = CreateUser();
 
-            // User creation
-            var user2 = new User(
-                _faker.Name.FirstName(),
-                _faker.Name.LastName(),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
+            var user2 = CreateUser();
 
-            // Expected result
             user1.Id.Should().NotBe(user2.Id);
         }
 
@@ -75,20 +57,11 @@ namespace KashPay.Tests.Domain.Entities
         [Trait("Domain", "Entities")]
         public void ChangeHashPassword_ShouldUpdateHashPassword_WhenCalled()
         {
-            // User creation
-            var user = new User(
-                _faker.Name.FirstName(),
-                _faker.Name.LastName(),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
+            var user = CreateUser();
 
-            // Change Password
             var expectedNewPass = Guid.NewGuid().ToString();
             user.ChangeHashPassword(expectedNewPass);
 
-            // Expected result
             user.HashPassword.Should().Be(expectedNewPass);
         }
 
@@ -96,19 +69,10 @@ namespace KashPay.Tests.Domain.Entities
         [Trait("Domain", "Entities")]
         public void SetBlocked_ShouldSetIsBlockedTrue_WhenCalled()
         {
-            // User creation
-            var user = new User(
-                _faker.Name.FirstName(),
-                _faker.Name.LastName(),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
+            var user = CreateUser();
 
-            // Set blocked
             user.SetBlocked();
 
-            // Expected result
             user.IsBlocked.Should().BeTrue();
             user.BlockedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
         }
@@ -117,22 +81,21 @@ namespace KashPay.Tests.Domain.Entities
         [Trait("Domain", "Entities")]
         public void SetUnBlocked_ShouldSetIsBlockedFalse_WhenCalled()
         {
-            // User creation
-            var user = new User(
-                _faker.Name.FirstName(),
-                _faker.Name.LastName(),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
+            var user = CreateUser();
 
-            // Block and Unblock
             user.SetBlocked();
             user.SetUnBlocked();
 
-            // Expected results
             user.IsBlocked.Should().BeFalse();
             user.BlockedAt.Should().BeNull();
         }
+
+        private User CreateUser() => new(
+            _faker.Name.FirstName(),
+            _faker.Name.LastName(),
+            _faker.Internet.Email(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString()
+        );
     }
 }

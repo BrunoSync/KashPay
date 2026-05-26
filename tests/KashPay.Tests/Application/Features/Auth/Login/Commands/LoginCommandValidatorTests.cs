@@ -78,10 +78,25 @@ namespace KashPay.Tests.Application.Features.Auth.Login.Commands
 
         [Fact]
         [Trait("Features", "Login")]
-        public void Validator_ShouldFail_WhenPasswordIsEmpty()
+        public void Validator_ShouldFail_WhenPasswordIsEmptyWithCpf()
         {
             var command = new LoginCommand(
                 _faker.Person.Cpf(false),
+                ""
+            );
+
+            var result = _validator.Validate(command);
+
+            result.IsValid.Should().BeFalse();
+            result.Errors.Should().Contain(e => e.PropertyName == "Password");
+        }
+
+        [Fact]
+        [Trait("Features", "Login")]
+        public void Validator_ShouldFail_WhenPasswordIsEmptyWithEmail()
+        {
+            var command = new LoginCommand(
+                _faker.Internet.Email(),
                 ""
             );
 

@@ -21,10 +21,9 @@ namespace KashPay.Tests.Application.Features.Wallet.Commands.Deposit
         [Trait("Features", "Deposit")]
         public void Validator_ShouldPass_WhenAmountIsValid()
         {
-            var amount = Random.Shared.Next(10, 50000);
             var command = new DepositCommand(
                 Guid.NewGuid(),
-                amount
+                Random.Shared.Next(10, 50000)
             );
 
             var result = _validator.Validate(command);
@@ -36,10 +35,9 @@ namespace KashPay.Tests.Application.Features.Wallet.Commands.Deposit
         [Trait("Features", "Deposit")]
         public void Validator_ShouldFail_WhenAmountIsTooLow()
         {
-            var amount = Random.Shared.Next(1, 9);
             var command = new DepositCommand(
                 Guid.NewGuid(),
-                amount
+                Random.Shared.Next(1, 9)
             );
 
             var result = _validator.Validate(command);
@@ -52,10 +50,9 @@ namespace KashPay.Tests.Application.Features.Wallet.Commands.Deposit
         [Trait("Features", "Deposit")]
         public void Validator_ShouldFail_WhenAmountIsTooHigh()
         {
-            var amount = Random.Shared.Next(50000, 51000);
             var command = new DepositCommand(
                 Guid.NewGuid(),
-                amount
+                Random.Shared.Next(50001, 51000)
             );
 
             var result = _validator.Validate(command);

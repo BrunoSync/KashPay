@@ -50,13 +50,7 @@ namespace KashPay.Tests.Application.Features.Auth.Login.Commands
                 _faker.Internet.Password(10)
             );
 
-            var user = new User(
-                _faker.Name.FirstName().Replace(" ", ""),
-                _faker.Name.LastName().Replace(" ", ""),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
+            var user = CreateUser();
 
             _userRepo.GetUserByCredentialsAsync(command.Credentials, Arg.Any<CancellationToken>())
                 .Returns(user);
@@ -75,26 +69,7 @@ namespace KashPay.Tests.Application.Features.Auth.Login.Commands
         [Trait("Features", "Login")]
         public async Task Handle_ShouldReturnLoginResponse_WhenValidCpfIsProvided()
         {
-            var command = new LoginCommand(
-                _faker.Person.Cpf(false),
-                _faker.Internet.Password(10)
-            );
-
-            var user = new User(
-                _faker.Name.FirstName().Replace(" ", ""),
-                _faker.Name.LastName().Replace(" ", ""),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
-
-            var normalizedCpf = _cpfHasher.Hash(command.Credentials);
-
-            _userRepo.GetUserByCredentialsAsync(normalizedCpf, Arg.Any<CancellationToken>())
-                .Returns(user);
-
-            _passHasher.Validate(command.Password, user.HashPassword)
-                .Returns(true);
+            var (command, user) = SetupValidCpfLogin();
 
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -133,13 +108,7 @@ namespace KashPay.Tests.Application.Features.Auth.Login.Commands
                 _faker.Internet.Password(10)
             );
 
-            var user = new User(
-                _faker.Name.FirstName().Replace(" ", ""),
-                _faker.Name.LastName().Replace(" ", ""),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
+            var user = CreateUser();
 
             var normalizedCpf = _cpfHasher.Hash(command.Credentials);
 
@@ -188,26 +157,7 @@ namespace KashPay.Tests.Application.Features.Auth.Login.Commands
         [Trait("Features", "Login")]
         public async Task Handle_ShouldGenerateTokens_WhenCredentialsAreValid()
         {
-            var command = new LoginCommand(
-                _faker.Person.Cpf(false),
-                _faker.Internet.Password(10)
-            );
-
-            var user = new User(
-                _faker.Name.FirstName().Replace(" ", ""),
-                _faker.Name.LastName().Replace(" ", ""),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
-
-            var normalizedCpf = _cpfHasher.Hash(command.Credentials);
-
-            _userRepo.GetUserByCredentialsAsync(normalizedCpf, Arg.Any<CancellationToken>())
-                .Returns(user);
-
-            _passHasher.Validate(command.Password, user.HashPassword)
-                .Returns(true);
+            var (command, user) = SetupValidCpfLogin();
 
             await _handler.Handle(command, CancellationToken.None);
 
@@ -219,30 +169,32 @@ namespace KashPay.Tests.Application.Features.Auth.Login.Commands
         [Trait("Features", "Login")]
         public async Task Handle_ShouldCommit_WhenLoginIsSuccessful()
         {
-            var command = new LoginCommand(
-                _faker.Person.Cpf(false),
-                _faker.Internet.Password(10)
-            );
-
-            var user = new User(
-                _faker.Name.FirstName().Replace(" ", ""),
-                _faker.Name.LastName().Replace(" ", ""),
-                _faker.Internet.Email(),
-                Guid.NewGuid().ToString(),
-                Guid.NewGuid().ToString()
-            );
-
-            var normalizedCpf = _cpfHasher.Hash(command.Credentials);
-
-            _userRepo.GetUserByCredentialsAsync(normalizedCpf, Arg.Any<CancellationToken>())
-                .Returns(user);
-
-            _passHasher.Validate(command.Password, user.HashPassword)
-                .Returns(true);
+            var (command, user) = SetupValidCpfLogin();
 
             await _handler.Handle(command, CancellationToken.None);
 
             await _uow.Received(1).CommitAsync(Arg.Any<CancellationToken>());
+        }
+
+        private User CreateUser()
+        => new User(
+            _faker.Name.FirstName().Replace(" ", ""),
+            _faker.Name.LastName().Replace(" ", ""),
+            _faker.Internet.Email(),
+            Guid.NewGuid().ToString(),
+            Guid.NewGuid().ToString()
+        );
+
+        private (LoginCommand command, User user) SetupValidCpfLogin()
+        {
+            var command = new LoginCommand(_faker.Person.Cpf(false), _faker.Internet.Password(10));
+            var user = CreateUser();
+            var normalizedCpf = _cpfHasher.Hash(command.Credentials);
+
+            _userRepo.GetUserByCredentialsAsync(normalizedCpf, Arg.Any<CancellationToken>()).Returns(user);
+            _passHasher.Validate(command.Password, user.HashPassword).Returns(true);
+
+            return (command, user);
         }
     }
 }

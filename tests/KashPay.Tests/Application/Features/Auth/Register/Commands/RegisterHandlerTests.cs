@@ -40,18 +40,7 @@ namespace KashPay.Tests.Application.Features.Auth.Register.Commands
         [Trait("Features", "Register")]
         public async Task Handle_ShouldReturnRegisterResponse_WhenValidDataIsProvided()
         {
-            var command = new RegisterCommand(
-                _faker.Name.FirstName().Replace(" ", ""),
-                _faker.Name.LastName(),
-                _faker.Internet.Email().Trim().ToLower(),
-                _faker.Person.Cpf(false),
-                _faker.Internet.Password(10)
-            );
-
-            _userRepo.UserExistByEmailAsync(command.Email, Arg.Any<CancellationToken>())
-                .Returns(false);
-            _userRepo.UserExistByCpfAsync(command.Cpf, Arg.Any<CancellationToken>())
-                .Returns(false);
+            var command = CreateValidSetup();
 
             var result = await _handler.Handle(command, CancellationToken.None);
 
@@ -65,13 +54,7 @@ namespace KashPay.Tests.Application.Features.Auth.Register.Commands
         [Trait("Features", "Register")]
         public async Task Handle_ShouldReturnEmailAlreadyExistError_WhenEmailIsAlreadyRegistered()
         {
-            var command = new RegisterCommand(
-                _faker.Name.FirstName().Replace(" ", ""),
-                _faker.Name.LastName(),
-                _faker.Internet.Email().Trim().ToLower(),
-                _faker.Person.Cpf(false),
-                _faker.Internet.Password(10)
-            );
+            var command = CreateCommand();
 
             _userRepo.UserExistByEmailAsync(command.Email, Arg.Any<CancellationToken>())
                 .Returns(true);
@@ -87,13 +70,7 @@ namespace KashPay.Tests.Application.Features.Auth.Register.Commands
         [Trait("Features", "Register")]
         public async Task Handle_ShouldReturnCpfAlreadyExistError_WhenCpfIsAlreadyRegistered()
         {
-            var command = new RegisterCommand(
-                _faker.Name.FirstName().Replace(" ", ""),
-                _faker.Name.LastName(),
-                _faker.Internet.Email().Trim().ToLower(),
-                _faker.Person.Cpf(false),
-                _faker.Internet.Password(10)
-            );
+            var command = CreateCommand();
 
             _userRepo.UserExistByEmailAsync(command.Email, Arg.Any<CancellationToken>())
                 .Returns(false);
@@ -111,18 +88,7 @@ namespace KashPay.Tests.Application.Features.Auth.Register.Commands
         [Trait("Features", "Register")]
         public async Task Handle_ShouldHashPassword_BeforeSaving()
         {
-            var command = new RegisterCommand(
-                _faker.Name.FirstName().Replace(" ", ""),
-                _faker.Name.LastName().Replace(" ", ""),
-                _faker.Internet.Email().Trim().ToLower(),
-                _faker.Person.Cpf(false),
-                _faker.Internet.Password(10)
-            );
-
-            _userRepo.UserExistByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(false);
-            _userRepo.UserExistByCpfAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(false);
+            var command = CreateValidSetup();
 
             await _handler.Handle(command, CancellationToken.None);
 
@@ -133,18 +99,7 @@ namespace KashPay.Tests.Application.Features.Auth.Register.Commands
         [Trait("Features", "Register")]
         public async Task Handle_ShouldHashCpf_BeforeSaving()
         {
-            var command = new RegisterCommand(
-                _faker.Name.FirstName().Replace(" ", ""),
-                _faker.Name.LastName().Replace(" ", ""),
-                _faker.Internet.Email().Trim().ToLower(),
-                _faker.Person.Cpf(false),
-                _faker.Internet.Password(10)
-            );
-
-            _userRepo.UserExistByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(false);
-            _userRepo.UserExistByCpfAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(false);
+            var command = CreateValidSetup();
 
             await _handler.Handle(command, CancellationToken.None);
 
@@ -155,18 +110,7 @@ namespace KashPay.Tests.Application.Features.Auth.Register.Commands
         [Trait("Features", "Register")]
         public async Task Handle_ShouldNormalizeEmail_BeforeSaving()
         {
-            var command = new RegisterCommand(
-                _faker.Name.FirstName().Replace(" ", ""),
-                _faker.Name.LastName().Replace(" ", ""),
-                _faker.Internet.Email().Trim().ToLower(),
-                _faker.Person.Cpf(false),
-                _faker.Internet.Password(10)
-            );
-
-            _userRepo.UserExistByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(false);
-            _userRepo.UserExistByCpfAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(false);
+            var command = CreateValidSetup();
 
             await _handler.Handle(command, CancellationToken.None);
 
@@ -177,22 +121,30 @@ namespace KashPay.Tests.Application.Features.Auth.Register.Commands
         [Trait("Features", "Register")]
         public async Task Handle_ShouldCommit_WhenUserIsCreatedSuccessfully()
         {
-            var command = new RegisterCommand(
-                _faker.Name.FirstName().Replace(" ", ""),
-                _faker.Name.LastName().Replace(" ", ""),
-                _faker.Internet.Email().Trim().ToLower(),
-                _faker.Person.Cpf(false),
-                _faker.Internet.Password(10)
-            );
-
-            _userRepo.UserExistByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(false);
-            _userRepo.UserExistByCpfAsync(Arg.Any<string>(), Arg.Any<CancellationToken>())
-                .Returns(false);
+            var command = CreateValidSetup();
 
             await _handler.Handle(command, CancellationToken.None);
 
             await _uow.Received(1).CommitAsync(Arg.Any<CancellationToken>());
         }  
+
+        private RegisterCommand CreateCommand()
+        => new RegisterCommand(
+            _faker.Name.FirstName().Replace(" ", ""),
+            _faker.Name.LastName(),
+            _faker.Internet.Email().Trim().ToLower(),
+            _faker.Person.Cpf(false),
+            _faker.Internet.Password(10)
+        );
+
+        private RegisterCommand CreateValidSetup()
+        {
+            var command = CreateCommand();
+
+            _userRepo.UserExistByEmailAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(false);
+            _userRepo.UserExistByCpfAsync(Arg.Any<string>(), Arg.Any<CancellationToken>()).Returns(false);
+
+            return command;
+        }
     } 
 }
