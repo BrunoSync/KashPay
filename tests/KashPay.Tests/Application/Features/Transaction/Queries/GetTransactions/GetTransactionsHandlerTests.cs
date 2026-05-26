@@ -29,19 +29,7 @@ namespace KashPay.Tests.Application.Features.Transaction.Queries.GetTransactions
         [Trait("Features", "GetTransactions")]
         public async Task Handle_ShouldReturnGetTransactionsResponse_WhenWalletExists()
         {
-            var query = new GetTransactionsQuery(Guid.NewGuid(), 5, null);
-            var wallet = new KashPay.Domain.Entities.Wallet(query.UserId);
-
-            var transactions = new List<KashPay.Domain.Entities.Transaction>
-            {
-                new(wallet.Id, null, 100, TransactionType.Deposit),
-                new(wallet.Id, null, 200, TransactionType.Deposit),
-            };
-
-            _walletRepo.FindWalletByUserIdAsync(query.UserId, Arg.Any<CancellationToken>())
-                .Returns(wallet);
-            _transactionRepo.GetByWalletIdAsync(wallet.Id, query.PageSize, query.Cursor, Arg.Any<CancellationToken>())
-                .Returns(transactions);
+            var (query, wallet, transactions) = SetupWithTransactions(15, 2);
 
             var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -71,19 +59,7 @@ namespace KashPay.Tests.Application.Features.Transaction.Queries.GetTransactions
         [Trait("Features", "GetTransactions")]
         public async Task Handle_ShouldReturnNextCursor_WhenThereAreMoreTransactions()
         {
-            var query = new GetTransactionsQuery(Guid.NewGuid(), 2, null);
-            var wallet = new KashPay.Domain.Entities.Wallet(query.UserId);
-
-            var transactions = new List<KashPay.Domain.Entities.Transaction>
-            {
-                new(wallet.Id, null, 100, TransactionType.Deposit),
-                new(wallet.Id, null, 200, TransactionType.Deposit),
-            };
-
-            _walletRepo.FindWalletByUserIdAsync(query.UserId, Arg.Any<CancellationToken>())
-                .Returns(wallet);
-            _transactionRepo.GetByWalletIdAsync(wallet.Id, query.PageSize, query.Cursor, Arg.Any<CancellationToken>())
-                .Returns(transactions);
+            var (query, wallet, transactions) = SetupWithTransactions(2, 2);
 
             var result = await _handler.Handle(query, CancellationToken.None);
 
@@ -97,25 +73,27 @@ namespace KashPay.Tests.Application.Features.Transaction.Queries.GetTransactions
         [Trait("Features", "GetTransactions")]
         public async Task Handle_ShouldReturnNullCursor_WhenThereAreNoMoreTransactions()
         {
-            var query = new GetTransactionsQuery(Guid.NewGuid(), 5, null);
-            var wallet = new KashPay.Domain.Entities.Wallet(query.UserId);
-
-            var transactions = new List<KashPay.Domain.Entities.Transaction>
-            {
-                new(wallet.Id, null, 100, TransactionType.Deposit),
-                new(wallet.Id, null, 200, TransactionType.Deposit),
-            };
-
-            _walletRepo.FindWalletByUserIdAsync(query.UserId, Arg.Any<CancellationToken>())
-                .Returns(wallet);
-            _transactionRepo.GetByWalletIdAsync(wallet.Id, query.PageSize, query.Cursor, Arg.Any<CancellationToken>())
-                .Returns(transactions);
+            var (query, wallet, transactions) = SetupWithTransactions(15, 10);
 
             var result = await _handler.Handle(query, CancellationToken.None);
 
             result.IsT0.Should().BeTrue();
             var success = result.AsT0;
             success.Cursor.Should().BeNull();
+        }
+
+        private (GetTransactionsQuery query, KashPay.Domain.Entities.Wallet wallet, List<KashPay.Domain.Entities.Transaction> transactions) SetupWithTransactions(int pageSize, int transactionCount)
+        {
+            var query = new GetTransactionsQuery(Guid.NewGuid(), pageSize, null);
+            var wallet = new KashPay.Domain.Entities.Wallet(query.UserId);
+            var transactions = Enumerable.Range(0, transactionCount)
+                .Select((_, i) => new KashPay.Domain.Entities.Transaction(wallet.Id, null, (i + 1) * 100, TransactionType.Deposit))
+                .ToList();
+
+            _walletRepo.FindWalletByUserIdAsync(query.UserId, Arg.Any<CancellationToken>()).Returns(wallet);
+            _transactionRepo.GetByWalletIdAsync(wallet.Id, query.PageSize, query.Cursor, Arg.Any<CancellationToken>()).Returns(transactions);
+
+            return (query, wallet, transactions);
         }
     }
 }
