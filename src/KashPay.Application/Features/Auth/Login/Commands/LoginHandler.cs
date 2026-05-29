@@ -12,6 +12,7 @@ using KashPay.Application.Common.OneOf;
 using KashPay.Application.Common.OneOf.Errors;
 using KashPay.Domain.Entities;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using OneOf;
 
 namespace KashPay.Application.Features.Auth.Login.Queries
@@ -24,9 +25,10 @@ namespace KashPay.Application.Features.Auth.Login.Queries
         private readonly IJwtService _token;
         private readonly IUserRepository _userRepo;
         private readonly IRefreshTokenRepository _rtRepo;
+        private readonly ILogger<LoginHandler> _logger;
 
         public LoginHandler(ICpfHasher cpfHasher, IUnitOfWork uow, IPasswordHasher passHasher, IJwtService token, 
-            IUserRepository userRepo, IRefreshTokenRepository rtRepo
+            IUserRepository userRepo, IRefreshTokenRepository rtRepo, ILogger<LoginHandler> logger
             )
         {
             _cpfHasher = cpfHasher;
@@ -35,6 +37,7 @@ namespace KashPay.Application.Features.Auth.Login.Queries
             _token = token;
             _userRepo = userRepo;
             _rtRepo = rtRepo;
+            _logger = logger;
         }
 
          public async Task<OneOf<LoginResponse, AppError>> Handle(LoginCommand command, CancellationToken ct)
@@ -55,7 +58,10 @@ namespace KashPay.Application.Features.Auth.Login.Queries
             var user = await _userRepo.GetUserByCredentialsAsync(normalizedCredential, ct);
 
             if (user is null || !_passHasher.Validate(command.Password, user.HashPassword))
+            {
+                _logger.LogWarning("Login failed because invalid credentials, Credential = {email}", command.Credentials);
                 return new InvalidCredentialsError();
+            }
 
             var accessToken = _token.GenerateAccessToken(user);
             var (rt, expiration) = _token.GenerateRefreshToken();
@@ -69,11 +75,14 @@ namespace KashPay.Application.Features.Auth.Login.Queries
             await _rtRepo.Add(refreshToken);
             await _uow.CommitAsync(ct);
 
+            _logger.LogInformation("Login successful: UserId = {userId} | UserEmail = {userEmail}", user.Id, user.Email);
+
             return new LoginResponse(
                 accessToken,
                 rt,
                 DateTime.UtcNow
             );
+
         }
     }
 }

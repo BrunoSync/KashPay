@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using KashPay.Application.Common.Interfaces.Infrastructure.Repositories;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace KashPay.Application.Features.Auth.Logout.Commands
 {
@@ -11,11 +12,13 @@ namespace KashPay.Application.Features.Auth.Logout.Commands
     {
         private readonly IRefreshTokenRepository _rtRepo;
         private readonly IUnitOfWork _uow;
+        private readonly ILogger<LogoutHandler> _logger;
 
-        public LogoutHandler(IRefreshTokenRepository rtRepo, IUnitOfWork uow)
+        public LogoutHandler(IRefreshTokenRepository rtRepo, IUnitOfWork uow, ILogger<LogoutHandler> logger)
         {
             _rtRepo = rtRepo;
             _uow = uow;
+            _logger = logger;
         }
 
         public async Task Handle(LogoutCommand command, CancellationToken ct)
@@ -23,6 +26,8 @@ namespace KashPay.Application.Features.Auth.Logout.Commands
             var tokens = await _rtRepo.GetAllValidTokensByUserAsync(command.UserId, ct);
 
             tokens.ForEach(t => t.Revoke());
+
+            _logger.LogInformation("All refresh tokens are revoked, User = {id}", command.UserId);
 
             await _uow.CommitAsync(ct);
         }
