@@ -10,6 +10,7 @@ using KashPay.Application.Common.OneOf;
 using KashPay.Application.Common.OneOf.Errors;
 using KashPay.Domain.Entities;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using OneOf;
 
 namespace KashPay.Application.Features.Auth.ForgotPassword.Commands
@@ -20,13 +21,17 @@ namespace KashPay.Application.Features.Auth.ForgotPassword.Commands
         private readonly IPasswordResetTokenRepository _tokenRepo;
         private readonly IEmailService _email;
         private readonly IUnitOfWork _uow;
+        private readonly  ILogger<ForgotPasswordHandler> _logger;
 
-        public ForgotPasswordHandler(IUserRepository userRepo, IPasswordResetTokenRepository tokenRepo, IEmailService email, IUnitOfWork uow)
+        public ForgotPasswordHandler(IUserRepository userRepo, IPasswordResetTokenRepository tokenRepo, IEmailService email, IUnitOfWork uow,
+            ILogger<ForgotPasswordHandler> logger 
+        )
         {
             _userRepo = userRepo;
             _tokenRepo = tokenRepo;
             _email = email;
             _uow = uow;
+            _logger = logger;
         }
 
         public async Task<ForgotPasswordResponse> Handle(ForgotPasswordCommand command, CancellationToken ct)
@@ -47,6 +52,8 @@ namespace KashPay.Application.Features.Auth.ForgotPassword.Commands
             await _uow.CommitAsync(ct);
 
             await _email.SendPasswordResetEmailAsync(command.Email, code, ct);
+
+            _logger.LogInformation("Password reset code sent: {id}", user.Id);
 
             return new ForgotPasswordResponse("If the email exists, you will receive the instructions.");
         }

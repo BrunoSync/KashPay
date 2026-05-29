@@ -7,6 +7,7 @@ using KashPay.Application.Common.OneOf;
 using KashPay.Application.Common.OneOf.Errors;
 using KashPay.Application.DTOs;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using OneOf;
 
 namespace KashPay.Application.Features.Transaction.Queries.GetTransactions
@@ -15,11 +16,13 @@ namespace KashPay.Application.Features.Transaction.Queries.GetTransactions
     {
         private readonly IWalletRepository _walletRepo;
         private readonly ITransactionRepository _transactionRepo;
+        private readonly ILogger<GetTransactionsHandler> _logger;
 
-        public GetTransactionsHandler(IWalletRepository walletRepo, ITransactionRepository transactionRepo)
+        public GetTransactionsHandler(IWalletRepository walletRepo, ITransactionRepository transactionRepo, ILogger<GetTransactionsHandler> logger)
         {
             _walletRepo = walletRepo;
             _transactionRepo = transactionRepo;
+            _logger = logger;
         }
 
         public async Task<OneOf<GetTransactionsResponse, AppError>> Handle(GetTransactionsQuery query, CancellationToken ct)
@@ -27,7 +30,10 @@ namespace KashPay.Application.Features.Transaction.Queries.GetTransactions
             var wallet = await _walletRepo.FindWalletByUserIdAsync(query.UserId, ct);
 
             if (wallet is null)
+            {
+                _logger.LogWarning("Wallet not found");
                 return new WalletNotFoundError();
+            }
 
             var transactions = await _transactionRepo.GetByWalletIdAsync(
                 wallet.Id,

@@ -8,6 +8,7 @@ using KashPay.Application.Common.OneOf.Errors;
 using KashPay.Domain.Entities;
 using KashPay.Domain.Enums;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using OneOf;
 
 namespace KashPay.Application.Features.Wallet.Commands.Transfer
@@ -17,12 +18,14 @@ namespace KashPay.Application.Features.Wallet.Commands.Transfer
         private readonly IWalletRepository _walletRepo;
         private readonly ITransactionRepository _transactionRepo;
         private readonly IUnitOfWork _uow;
+        private readonly ILogger<TransferHandler> _logger;
 
-        public TransferHandler(IWalletRepository walletRepo, ITransactionRepository transactionRepo, IUnitOfWork uow)
+        public TransferHandler(IWalletRepository walletRepo, ITransactionRepository transactionRepo, IUnitOfWork uow, ILogger<TransferHandler> logger)
         {
             _walletRepo = walletRepo;
             _transactionRepo = transactionRepo;
             _uow = uow;
+            _logger = logger;
         }
 
         public async Task<OneOf<TransferResponse, AppError>> Handle(TransferCommand command, CancellationToken ct)
@@ -34,10 +37,16 @@ namespace KashPay.Application.Features.Wallet.Commands.Transfer
             var toWalletId = await _walletRepo.GetWalletIdByAccountNumberAsync(command.AccountNumber, ct);
             
             if (userWalletId is null)
+            {
+                _logger.LogWarning("User wallet not found");
                 return new WalletNotFoundError();
+            }
 
             if (toWalletId is null)
+            {
+                _logger.LogWarning("To wallet not found");
                 return new AccountNotFoundError();
+            }
 
             var walletsIds = new[] {userWalletId!.Value, toWalletId!.Value}
                 .OrderBy(id => id)
@@ -49,10 +58,16 @@ namespace KashPay.Application.Features.Wallet.Commands.Transfer
             KashPay.Domain.Entities.Wallet toWalletAccount;
 
             if (firstWallet is null)
+            {
+                _logger.LogWarning("First wallet not found");
                 return new WalletNotFoundError();
+            }
 
             if (secondWallet is null)
+            {
+                _logger.LogWarning("Second wallet not found");
                 return new AccountNotFoundError();
+            }
 
             if (firstWallet.UserId == command.UserId)
             {
@@ -66,10 +81,16 @@ namespace KashPay.Application.Features.Wallet.Commands.Transfer
             }
             
             if (fromWalletAccount.UserId == toWalletAccount.UserId)
+            {
+                _logger.LogWarning("Cannot transfer to own account");
                 return new InvalidTransferError();
+            }
 
             if (fromWalletAccount.Balance < command.Amount)
+            {
+                _logger.LogWarning("Insufficent funds");
                 return new InsufficientFundsError();
+            }
 
             fromWalletAccount.Debit(command.Amount);
             toWalletAccount.Credit(command.Amount);
@@ -83,6 +104,8 @@ namespace KashPay.Application.Features.Wallet.Commands.Transfer
 
             await _transactionRepo.Add(newTransaction);
             await _uow.CommitAsync(ct);
+
+            _logger.LogInformation("Successful transfer, fromUser = {fromUserId}, toUser = {toUserId}, amount = {amount}", fromWalletAccount.UserId, toWalletAccount.UserId, command.Amount);
 
             return new TransferResponse(
                 fromWalletAccount.AccountNumber,

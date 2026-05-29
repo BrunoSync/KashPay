@@ -7,11 +7,24 @@ using KashPay.Infrastructure.Extension;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using Serilog;
 
 // DotNetEnv
 DotNetEnv.Env.Load("../../.env");
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Serilog
+builder.Host.UseSerilog((context, config) =>
+{
+    config
+        .MinimumLevel.Information()
+        .WriteTo.Console()
+        .WriteTo.File("logs/kashpay.log", rollingInterval: RollingInterval.Day)
+        .Enrich.FromLogContext()
+        .Enrich.WithMachineName()
+        .Enrich.WithEnvironmentName();
+});
 
 // Global Exception
 builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
